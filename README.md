@@ -1,2 +1,2 @@
 # telegram-webhook
-Telegram bot implementation using webhook
+Telegram bot implementation using webhooks
