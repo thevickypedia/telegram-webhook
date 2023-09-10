@@ -2,5 +2,5 @@ pydantic==2.3.0
 pydantic-settings==2.0.3
 fastapi~=0.103.1
 uvicorn~=0.23.2
-pyngrok==6.0.0
+pyngrok==5.2.1
 requests~=2.31.0
