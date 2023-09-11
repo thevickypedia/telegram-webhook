@@ -2,19 +2,22 @@ import logging.config
 import os
 import socket
 
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    """
+    """Env configuration.
 
     References:
         https://docs.pydantic.dev/2.3/migration/#required-optional-and-nullable-fields
     """
 
     bot_token: str
-    ngrok_token: str | None
+
+    ngrok_token: str | None = None
+    webhook: HttpUrl | None = None
+    endpoint: str = "/telegram-webhook"
 
     host: str = socket.gethostbyname("localhost")
     port: int = 8443
@@ -25,6 +28,7 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+assert settings.ngrok_token or settings.webhook, "Either a pre-configured webhook or Ngrok auth token is required"
 
 
 class LogConfig(BaseModel):

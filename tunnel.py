@@ -8,7 +8,7 @@ from pyngrok.exception import PyngrokError
 from config import logger, settings
 
 get_default().config_path = 'ngrok.yaml'
-ngrok.set_auth_token(settings.ngrok_token)
+ngrok.set_auth_token(settings.ngrok_token) if settings.ngrok_token else None
 
 
 def ngrok_connection():
@@ -43,7 +43,7 @@ class Tunnel(Process):
         self.socket.close()
 
     def kill(self) -> None:
-        logger.info("Resetting ngrok config")
+        logger.info("Resetting ngrok config.")
         ngrok.kill(pyngrok_config=None)
-        logger.info("Closing socket connection")
+        logger.info("Closing socket connection.")
         self.socket.close()
