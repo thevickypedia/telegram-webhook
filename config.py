@@ -1,20 +1,27 @@
 import logging.config
+import os
 import socket
 
-from pydantic import HttpUrl, BaseModel
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    """
+
+    References:
+        https://docs.pydantic.dev/2.3/migration/#required-optional-and-nullable-fields
+    """
+
     bot_token: str
-    webhook: HttpUrl
     ngrok_token: str | None
+
     host: str = socket.gethostbyname("localhost")
-    port: int
+    port: int = 8443
 
     class Config:
         extra = "allow"
-        env_file = ".env"
+        env_file = os.environ.get('env_file', os.environ.get('ENV_FILE', '.env'))
 
 
 settings = Settings()
@@ -24,7 +31,7 @@ class LogConfig(BaseModel):
     """Logging configuration to be set for the server"""
 
     LOGGER_NAME: str = "TelegramAPI"
-    LOG_FORMAT: str = "%(levelprefix)s | %(asctime)s | %(message)s"
+    LOG_FORMAT: str = "%(levelprefix)s %(message)s"
     LOG_LEVEL: str = "INFO"
 
     # Logging config
@@ -49,5 +56,5 @@ class LogConfig(BaseModel):
     }
 
 
-logging.config.dictConfig(LogConfig().dict())
+logging.config.dictConfig(LogConfig().model_dump())
 logger = logging.getLogger("TelegramAPI")
