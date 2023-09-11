@@ -16,8 +16,6 @@ def ngrok_connection():
         # Open a ngrok tunnel to the socket
         endpoint = ngrok.connect(settings.port, "http",
                                  options={"remote_addr": f"{settings.host}:{settings.port}"})
-        tunnel = Tunnel()
-        tunnel.start()
         return endpoint.public_url.replace('http://', 'https://')
     except PyngrokError as err:
         logger.error(err)
@@ -37,7 +35,7 @@ class Tunnel(Process):
         try:
             connection, client_address = self.socket.accept()
         except KeyboardInterrupt:
-            logger.warning('\nInterrupted manually.')
+            logger.warning('Interrupted manually.')
             if connection:
                 connection.close()
             logger.warning("Connection closed.")
@@ -45,5 +43,7 @@ class Tunnel(Process):
         self.socket.close()
 
     def kill(self) -> None:
+        logger.info("Resetting ngrok config")
         ngrok.kill(pyngrok_config=None)
+        logger.info("Closing socket connection")
         self.socket.close()
