@@ -6,11 +6,11 @@ from routes import router
 from tunnel import Tunnel
 
 with open('README.md') as file:
-    long_description = '\n'.join(file.readlines()[1:]).strip()
+    readme_data = file.readlines()
 
 app = FastAPI(
-    title="Telegram API Webhook",
-    description=long_description,
+    title=readme_data[0].lstrip('#'),
+    description='\n'.join(readme_data[1:]).strip(),
 )
 app.include_router(router)
 

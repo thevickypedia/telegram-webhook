@@ -25,6 +25,7 @@ class Tunnel(Process):
     def __init__(self):
         super().__init__()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.open = False
 
     def run(self) -> None:
         self._start_tunnel()
@@ -33,17 +34,20 @@ class Tunnel(Process):
         self.socket.listen(1)
         connection = None
         try:
+            self.open = True
             connection, client_address = self.socket.accept()
         except KeyboardInterrupt:
-            logger.warning('Interrupted manually.')
+            logger.info('Tunneling interrupted.')
             if connection:
                 connection.close()
-            logger.warning("Connection closed.")
+            logger.info("Socket connection closed.")
         ngrok.kill(pyngrok_config=None)  # uses default config when None is passed
         self.socket.close()
+        self.open = False
 
     def kill(self) -> None:
-        logger.info("Resetting ngrok config.")
-        ngrok.kill(pyngrok_config=None)
-        logger.info("Closing socket connection.")
-        self.socket.close()
+        if self.open:
+            logger.info("Resetting ngrok config.")
+            ngrok.kill(pyngrok_config=None)
+            logger.info("Closing socket connection.")
+            self.socket.close()
