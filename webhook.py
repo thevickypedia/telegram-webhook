@@ -8,6 +8,9 @@ SESSION = requests.Session()
 
 
 def get_webhook():
+    """
+    https://core.telegram.org/bots/api#getwebhookinfo
+    """
     get_info = f"{BASE_URL}/getWebhookInfo"
     response = SESSION.get(url=get_info)
     if response.ok:
@@ -17,6 +20,9 @@ def get_webhook():
 
 
 def delete_webhook():
+    """
+    https://core.telegram.org/bots/api#deletewebhook
+    """
     del_info = f"{BASE_URL}/setWebhook"
     response = SESSION.post(url=del_info, params=dict(url=None))
     if response.ok:
@@ -26,8 +32,17 @@ def delete_webhook():
 
 
 def set_webhook(webhook: HttpUrl):
+    """
+    https://core.telegram.org/bots/api#setwebhook
+    """
     put_info = f"{BASE_URL}/setWebhook"
-    response = SESSION.post(url=put_info, params=dict(url=webhook))
+    if settings.certificate:
+        response = SESSION.post(url=put_info,
+                                data={'url': webhook},
+                                files={'certificate': (settings.certificate.stem + settings.certificate.suffix,
+                                                       settings.certificate.open(mode="rb"))})
+    else:
+        response = SESSION.post(url=put_info, params=dict(url=webhook))
     if response.ok:
         logger.info("Webhook has been set to: %s", webhook)
         return response.json()

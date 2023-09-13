@@ -1,9 +1,18 @@
 import logging.config
 import os
 import socket
+from enum import IntEnum
 
-from pydantic import BaseModel, HttpUrl
+import requests
+from pydantic import BaseModel, HttpUrl, FilePath
 from pydantic_settings import BaseSettings
+
+
+class AllowedPorts(IntEnum):
+    tcp: int = 88
+    http: int = 80
+    https: int = 443
+    openssl: int = 8443
 
 
 class Settings(BaseSettings):
@@ -20,7 +29,8 @@ class Settings(BaseSettings):
     endpoint: str = "/telegram-webhook"
 
     host: str = socket.gethostbyname("localhost")
-    port: int = 8443
+    port: AllowedPorts = 8443
+    certificate: FilePath | None = None
 
     class Config:
         extra = "allow"
@@ -28,7 +38,7 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-assert settings.ngrok_token or settings.webhook, "Either a pre-configured webhook or Ngrok auth token is required"
+assert settings.ngrok_token or settings.webhook, "\n\nEither a pre-configured webhook or Ngrok auth token is required"
 
 
 class LogConfig(BaseModel):
@@ -62,3 +72,25 @@ class LogConfig(BaseModel):
 
 logging.config.dictConfig(LogConfig().model_dump())
 logger = logging.getLogger("TelegramAPI")
+
+if settings.webhook and settings.webhook.scheme == "http":
+    raise ValueError(
+        "\n\nPre-configured webhook should be able to handle TLS1.2(+) HTTPS-traffic"
+    )
+
+try:
+    requests.get(url=settings.webhook, timeout=1)
+except requests.exceptions.SSLError as error:
+    if "self-signed certificate" in error.__str__() and not settings.certificate:
+        raise ValueError(
+            "\n\n'CERTIFICATE' is required for webhooks backed by a self-signed certificate for verification"
+        )
+    else:
+        raise
+
+if not any((settings.ngrok_token, settings.certificate)):
+    logger.critical("Please make sure '%s' has a certificate backed by a trusted certificate authority (CA)",
+                    settings.webhook)
+    sample_openssl = 'openssl req -newkey rsa:2048 -sha256 -nodes -keyout PRIVATE.key -x509 -days 365 -out ' \
+                     'PUBLIC.pem -subj "/C=US/ST=New York/L=Brooklyn/O=Example Brooklyn Company/CN=DOMAIN"'
+    logger.critical("If not, please use a self-signed certificate by running\n'%s'", sample_openssl)

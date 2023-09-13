@@ -14,8 +14,8 @@ ngrok.set_auth_token(settings.ngrok_token) if settings.ngrok_token else None
 def ngrok_connection():
     try:
         # Open a ngrok tunnel to the socket
-        endpoint = ngrok.connect(settings.port, "http",
-                                 options={"remote_addr": f"{settings.host}:{settings.port}"})
+        endpoint = ngrok.connect(settings.port.real, "http",
+                                 options={"remote_addr": f"{settings.host}:{settings.port.real}"})
         return endpoint.public_url.replace('http://', 'https://')
     except PyngrokError as err:
         logger.error(err)

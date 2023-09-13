@@ -37,17 +37,20 @@ async def startup() -> None:
         public_url = str(settings.webhook)
     else:
         public_url = ngrok_connection()
+        tunnel.start()  # starts regardless of ngrok connection as it is killed before raising runtime error
     if public_url:
-        logger.info("http://%s:%s -> %s", settings.host, settings.port, public_url)
+        logger.info("http://%s:%s -> %s", settings.host, settings.port.real, public_url)
         Thread(target=set_webhook, args=(urljoin(public_url, settings.endpoint),)).start()
-        tunnel.start()
     else:
-        raise RuntimeError("Failed to fetch webhook, cannot initiate tunneling.")
+        if tunnel.is_alive():
+            tunnel.kill()
+        raise RuntimeError("\n\nFailed to fetch webhook, cannot initiate tunneling.")
 
 
 @router.on_event("shutdown")
 async def shutdown():
-    tunnel.kill()
+    if settings.ngrok_token:
+        tunnel.kill()
     delete_webhook()
     os._exit(0)  # noqa
 
