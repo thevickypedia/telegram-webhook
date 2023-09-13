@@ -36,13 +36,16 @@ def set_webhook(webhook: HttpUrl):
     https://core.telegram.org/bots/api#setwebhook
     """
     put_info = f"{BASE_URL}/setWebhook"
+    payload = dict(url=webhook, secret_token=settings.secret_token)
+    if settings.secret_token:
+        # This will avoid forbidden messages getting stuck in the queue, ahead of acceptable messages
+        payload['drop_pending_updates'] = True
     if settings.certificate:
-        response = SESSION.post(url=put_info,
-                                data={'url': webhook},
+        response = SESSION.post(url=put_info, data=payload,
                                 files={'certificate': (settings.certificate.stem + settings.certificate.suffix,
                                                        settings.certificate.open(mode="rb"))})
     else:
-        response = SESSION.post(url=put_info, params=dict(url=webhook))
+        response = SESSION.post(url=put_info, params=payload)
     if response.ok:
         logger.info("Webhook has been set to: %s", webhook)
         return response.json()

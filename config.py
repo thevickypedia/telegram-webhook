@@ -1,11 +1,17 @@
 import logging.config
 import os
 import socket
+import warnings
 from enum import IntEnum
 
 import requests
-from pydantic import BaseModel, HttpUrl, FilePath
+from pydantic import BaseModel, HttpUrl, FilePath, Field
 from pydantic_settings import BaseSettings
+from requests.exceptions import RequestsWarning
+
+
+class SecurityWarning(RequestsWarning):
+    """Custom security warning."""
 
 
 class AllowedPorts(IntEnum):
@@ -31,6 +37,8 @@ class Settings(BaseSettings):
     host: str = socket.gethostbyname("localhost")
     port: AllowedPorts = 8443
     certificate: FilePath | None = None
+    secret_token: str | None = Field(None, pattern="^[A-Za-z0-9_-]{1,256}$")
+    debug: bool = False
 
     class Config:
         extra = "allow"
@@ -46,7 +54,7 @@ class LogConfig(BaseModel):
 
     LOGGER_NAME: str = "TelegramAPI"
     LOG_FORMAT: str = "%(levelprefix)s %(message)s"
-    LOG_LEVEL: str = "INFO"
+    LOG_LEVEL: str = "DEBUG" if settings.debug else "INFO"
 
     # Logging config
     version: int = 1
@@ -85,7 +93,7 @@ except requests.exceptions.SSLError as error:
         raise ValueError(
             "\n\n'CERTIFICATE' is required for webhooks backed by a self-signed certificate for verification"
         )
-    else:
+    elif not settings.certificate:
         raise
 
 if not any((settings.ngrok_token, settings.certificate)):
@@ -94,3 +102,14 @@ if not any((settings.ngrok_token, settings.certificate)):
     sample_openssl = 'openssl req -newkey rsa:2048 -sha256 -nodes -keyout PRIVATE.key -x509 -days 365 -out ' \
                      'PUBLIC.pem -subj "/C=US/ST=New York/L=Brooklyn/O=Example Brooklyn Company/CN=DOMAIN"'
     logger.critical("If not, please use a self-signed certificate by running\n'%s'", sample_openssl)
+
+if not settings.secret_token:
+    warnings.warn(
+        "It is highly recommended to set a value for `secret_token`, "
+        "as it will ensure the request comes from a webhook set by you.",
+        SecurityWarning
+    )
+
+if 'ngrok' in settings.webhook.host.lower():
+    logger.warning("Certificate is not required for an Ngrok reverse proxy, as it uses a trusted CA")
+    settings.certificate = None

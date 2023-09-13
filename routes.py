@@ -1,4 +1,5 @@
 import os
+import secrets
 from http import HTTPStatus
 from json.decoder import JSONDecodeError
 from threading import Thread
@@ -55,6 +56,14 @@ async def shutdown():
     os._exit(0)  # noqa
 
 
+def two_factor(request: Request):
+    if settings.secret_token:  # only validates if secret_token env var is set
+        if secrets.compare_digest(request.headers.get('X-Telegram-Bot-Api-Secret-Token', ''), settings.secret_token):
+            return True
+    else:
+        return True
+
+
 @router.post(settings.endpoint)
 async def telegram_webhook(request: Request):
     """Invoked when a new message is received from Telegram API.
@@ -67,11 +76,17 @@ async def telegram_webhook(request: Request):
         HTTPException:
             - 406: If the request payload is not JSON format-able.
     """
+    logger.debug("Connection received from %s via %s", request.client.host, request.headers.get('host'))
     try:
         response = await request.json()
     except JSONDecodeError as error:
         logger.error(error)
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST.real, detail=HTTPStatus.BAD_REQUEST.phrase)
+    # Ensure only the owner who set the webhook can interact with the Bot
+    if not two_factor(request):
+        logger.error("Request received from a non-webhook source")
+        logger.error(response)
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN.real, detail=HTTPStatus.FORBIDDEN.phrase)
     chat_id = None
     try:
         chat_id = response['message']['chat']['id']
