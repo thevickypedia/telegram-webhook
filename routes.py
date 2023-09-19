@@ -99,7 +99,7 @@ async def telegram_webhook(request: Request):
             logger.error(error)
             raise HTTPException(status_code=HTTPStatus.NOT_ACCEPTABLE.real, detail=HTTPStatus.NOT_ACCEPTABLE.phrase)
     if 'stop' in text or 'exit' in text or 'kill' in text:
-        text = "Stopping webhook server and ngrok tunnel"
+        text = "Stopping webhook server"
         os.kill(os.getpid(), 15)  # Send a terminate signal for the current process ID triggering shutdown event
     await client.post(
         url=f"https://api.telegram.org/bot{settings.bot_token}/sendMessage",

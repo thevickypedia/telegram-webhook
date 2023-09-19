@@ -46,13 +46,34 @@ authentication.
 > The following code snippet replicates `TelegramAPI` does.
 
 ```python
+import os
 from urllib.parse import urljoin
+
 import requests
+
 from config import settings
 
-response = requests.post(url=urljoin(str(settings.webhook), settings.endpoint), verify=False,
-                         json={'message': {'text': 'hello-world'}},
-                         headers={"X-Telegram-Bot-Api-Secret-Token": settings.secret_token})
+payload = {'message': {'text': 'hello-world', 'chat': {'id': os.environ.get('CHAT_ID')}}}
+
+public = settings.certificate
+private = 'private.pem'
+bundle = 'ca_bundle.pem'
+
+with open(public, 'rb') as public_file, open(private, 'rb') as private_file, open(bundle, 'wb') as output_file:
+    public_data = public_file.read()
+    private_data = private_file.read()
+    output_file.write(public_data + private_data)
+
+response = requests.post(url=urljoin(str(settings.webhook), settings.endpoint),
+                         json=payload, cert=(public, private), verify=bundle,
+                         headers={"X-Telegram-Bot-Api-Secret-Token": settings.secret_token}, timeout=5)
 print(response.status_code)
 print(response.text)
 ```
+
+#### References
+
+- [Using self-signed certificates](https://core.telegram.org/bots/self-signed)
+- [Making webhook requests](https://core.telegram.org/bots/api#making-requests)
+- [Certificate as `inputFile` object](https://core.telegram.org/bots/api#inputfile)
+- [Guide to webhooks](https://core.telegram.org/bots/webhooks)

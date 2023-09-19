@@ -1,0 +1,13 @@
+<html>
+<body>
+
+<form action="https://api.telegram.org/bot<TOKEN>/setWebhook" method="post" enctype="multipart/form-data">
+    Select Certificate to upload: <input type="file" name="certificate" id="fileToUpload" required>
+    <br><br>
+    URL: <input type="text" name="url" value="" placeholder="Enter the webhook URL here" required>
+    <br><br>
+    <input type="submit" value="Set Webhook" name="submit">
+</form>
+
+</body>
+</html>
