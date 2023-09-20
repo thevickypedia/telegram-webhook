@@ -5,7 +5,7 @@ from pyngrok import ngrok
 from pyngrok.conf import get_default
 from pyngrok.exception import PyngrokError
 
-from config import logger, settings
+from models.config import logger, settings
 
 get_default().config_path = 'ngrok.yaml'
 ngrok.set_auth_token(settings.ngrok_token) if settings.ngrok_token else None

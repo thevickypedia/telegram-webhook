@@ -11,9 +11,9 @@ from fastapi.requests import Request
 from fastapi.responses import RedirectResponse
 from fastapi.routing import APIRouter
 
-from config import settings, logger
-from tunnel import Tunnel, ngrok_connection
-from webhook import set_webhook, delete_webhook
+from models.config import settings, logger
+from models.tunnel import Tunnel, ngrok_connection
+from models.webhook import set_webhook, delete_webhook
 
 client = httpx.AsyncClient()
 router = APIRouter()

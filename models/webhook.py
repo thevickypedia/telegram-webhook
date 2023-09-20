@@ -1,7 +1,7 @@
 import requests
 from pydantic import HttpUrl
 
-from config import settings, logger
+from models.config import settings, logger
 
 BASE_URL = f"https://api.telegram.org/bot{settings.bot_token}"
 SESSION = requests.Session()

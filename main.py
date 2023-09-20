@@ -1,8 +1,8 @@
 import uvicorn
 from fastapi import FastAPI
 
-from config import settings
-from routes import router
+from models.config import settings
+from models.routes import router
 
 with open('README.md') as file:
     readme_data = file.readlines()

@@ -51,7 +51,7 @@ from urllib.parse import urljoin
 
 import requests
 
-from config import settings
+from models.config import settings
 
 payload = {'message': {'text': 'hello-world', 'chat': {'id': os.environ.get('CHAT_ID')}}}
 
