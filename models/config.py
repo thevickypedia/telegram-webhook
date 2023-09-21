@@ -2,10 +2,12 @@ import logging.config
 import os
 import socket
 import warnings
-from enum import IntEnum
+from typing import List
+from enum import IntEnum, StrEnum
 
 import requests
-from pydantic import BaseModel, HttpUrl, FilePath, Field
+from pydantic import BaseModel, HttpUrl, FilePath, Field, PositiveInt
+from ipaddress import IPv4Address
 from pydantic_settings import BaseSettings
 from requests.exceptions import RequestsWarning
 
@@ -21,6 +23,20 @@ class AllowedPorts(IntEnum):
     openssl: int = 8443
 
 
+class AllowedUpdates(StrEnum):
+    """Updates to receive using the webhook.
+
+    See Also:
+        - Refer https://core.telegram.org/bots/api#update for the entire list of allowed updates.
+        - However, for this POC, we only consider limited options.
+    """
+
+    message: str = 'message'
+    edited_message: str = 'edited_message'
+    channel_post: str = 'channel_post'
+    edited_channel_post: str = 'edited_channel_post'
+
+
 class Settings(BaseSettings):
     """Env configuration.
 
@@ -30,14 +46,23 @@ class Settings(BaseSettings):
 
     bot_token: str
 
+    # Tunneling specifics
     ngrok_token: str | None = None
-    webhook: HttpUrl | None = None
     endpoint: str = "/telegram-webhook"
 
-    host: str = socket.gethostbyname("localhost")
-    port: AllowedPorts = 8443
-    certificate: FilePath | None = None
+    # Webhook specifics
+    webhook: HttpUrl | None = None
+    webhook_ip: IPv4Address | None = None
     secret_token: str | None = Field(None, pattern="^[A-Za-z0-9_-]{1,256}$")
+    certificate: FilePath | None = None
+    drop_pending_updates: bool = True
+    max_connections: PositiveInt = Field(40, le=100, ge=1)
+    allowed_updates: List[AllowedUpdates] = [AllowedUpdates.message]
+
+    # API specifics
+    host: str = socket.gethostbyname("localhost")
+    port: AllowedPorts = AllowedPorts.openssl
+
     debug: bool = False
 
     class Config:

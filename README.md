@@ -34,8 +34,14 @@ Setting up a telegram bot server using webhook
 - **WEBHOOK** - Pre-configured webhook
 - **CERTIFICATE** - File path to the public certificate _(only required when using self-signed certs)_
   > For more information visit https://core.telegram.org/bots/self-signed
+
 - **SECRET_TOKEN** - Secret token sent in a header in every webhook request to ensure that the request comes from a
   webhook set by the owner.
+- **WEBHOOK_IP** - Fixed IP address to use instead of IP resolved through DNS (webhook) _especially useful when webhook port forwarded_
+- **DROP_PENDING_UPDATES** - Pass `True` to drop all pending updates.
+- **MAX_CONNECTIONS** - Maximum number of allowed simultaneous HTTPS connections to the webhook.
+- **ALLOWED_UPDATES** - JSON-serialized list of the update types allowed for the bot to receive.
+
 - **DEBUG** - Boolean flag to enable debug level logging.
 
 ###### Sample request
