@@ -6,6 +6,7 @@ from threading import Thread
 from urllib.parse import urljoin
 
 import httpx
+from models.processor import serialize
 from fastapi.exceptions import HTTPException
 from fastapi.requests import Request
 from fastapi.responses import RedirectResponse
@@ -87,21 +88,8 @@ async def telegram_webhook(request: Request):
         logger.error("Request received from a non-webhook source")
         logger.error(response)
         raise HTTPException(status_code=HTTPStatus.FORBIDDEN.real, detail=HTTPStatus.FORBIDDEN.phrase)
-    chat_id = None
-    try:
-        chat_id = response['message']['chat']['id']
-        text = response['message']['text']
-    except KeyError as error:
-        if chat_id:
-            logger.info(response)
-            text = "Currently supports only text"
-        else:
-            logger.error(error)
-            raise HTTPException(status_code=HTTPStatus.NOT_ACCEPTABLE.real, detail=HTTPStatus.NOT_ACCEPTABLE.phrase)
-    if 'stop' in text or 'exit' in text or 'kill' in text:
-        text = "Stopping webhook server"
-        os.kill(os.getpid(), 15)  # Send a terminate signal for the current process ID triggering shutdown event
+    response, chat_id = serialize(response['message'])
     await client.post(
         url=f"https://api.telegram.org/bot{settings.bot_token}/sendMessage",
-        params={'chat_id': chat_id, 'text': text}
+        params={'chat_id': chat_id, 'text': response}
     )
