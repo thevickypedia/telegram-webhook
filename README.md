@@ -4,6 +4,24 @@
 
 This is a POC (Proof Of Concept) for telegram bot automation using webhook integration.
 
+<details>
+<summary><strong>Why webhooks?</strong></summary>
+
+| Polling                                                                        | Webhooks                                                  |
+|--------------------------------------------------------------------------------|-----------------------------------------------------------|
+| Easy to implement                                                              | Considerably more complex to implement                    |
+| Polling requests are made by the receiver of the data updates                  | Webhook requests are made by the source of the data       |
+| Polling is set up to run at fixed intervals and runs regardless of a new event | Webhooks are automatically triggered when an event occurs |
+| System is constantly running to check for new events                           | System will be on idle until an event is triggered        |
+
+<p align="center">
+  <img src="https://github.com/thevickypedia/telegram-webhook/blob/main/images/telegram.gif?raw=true" width="500px" height="600px">
+</p>
+
+GIF credits: [LinkedIn](https://www.linkedin.com/posts/brijpandeyji_in-the-world-of-apis-there-are-two-main-activity-7094640904170295296-QSjr)
+
+</details>
+
 ## Components
 
 - fastapi
@@ -37,7 +55,8 @@ Setting up a telegram bot server using webhook
 
 - **SECRET_TOKEN** - Secret token sent in a header in every webhook request to ensure that the request comes from a
   webhook set by the owner.
-- **WEBHOOK_IP** - Fixed IP address to use instead of IP resolved through DNS (webhook) _especially useful when webhook port forwarded_
+- **WEBHOOK_IP** - Fixed IP address to use instead of IP resolved through DNS (webhook) _especially useful when webhook
+  port forwarded_
 - **DROP_PENDING_UPDATES** - Pass `True` to drop all pending updates.
 - **MAX_CONNECTIONS** - Maximum number of allowed simultaneous HTTPS connections to the webhook.
 - **ALLOWED_UPDATES** - JSON-serialized list of the update types allowed for the bot to receive.
