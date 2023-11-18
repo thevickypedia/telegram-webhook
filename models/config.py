@@ -2,12 +2,12 @@ import logging.config
 import os
 import socket
 import warnings
-from typing import List
 from enum import IntEnum, StrEnum
+from ipaddress import IPv4Address
+from typing import List
 
 import requests
 from pydantic import BaseModel, HttpUrl, FilePath, Field, PositiveInt
-from ipaddress import IPv4Address
 from pydantic_settings import BaseSettings
 from requests.exceptions import RequestsWarning
 
@@ -111,15 +111,7 @@ if settings.webhook and settings.webhook.scheme == "http":
         "\n\nPre-configured webhook should be able to handle TLS1.2(+) HTTPS-traffic"
     )
 
-try:
-    requests.get(url=settings.webhook, timeout=1)
-except requests.exceptions.SSLError as error:
-    if "self-signed certificate" in error.__str__() and not settings.certificate:
-        raise ValueError(
-            "\n\n'CERTIFICATE' is required for webhooks backed by a self-signed certificate for verification"
-        )
-    elif not settings.certificate:
-        raise
+requests.get(url=settings.webhook, timeout=(2, 3), verify=settings.certificate)
 
 if not any((settings.ngrok_token, settings.certificate)):
     logger.critical("Please make sure '%s' has a certificate backed by a trusted certificate authority (CA)",

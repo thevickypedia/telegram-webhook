@@ -6,13 +6,13 @@ from threading import Thread
 from urllib.parse import urljoin
 
 import httpx
-from models.processor import serialize
 from fastapi.exceptions import HTTPException
 from fastapi.requests import Request
 from fastapi.responses import RedirectResponse
 from fastapi.routing import APIRouter
 
 from models.config import settings, logger
+from models.processor import serialize
 from models.tunnel import Tunnel, ngrok_connection
 from models.webhook import set_webhook, delete_webhook
 
