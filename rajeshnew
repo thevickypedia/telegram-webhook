@@ -1,0 +1,25 @@
+import logging
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+
+logging.basicConfig(level=logging.INFO)
+
+TOKEN = 'YOUR_API_TOKEN'
+
+def start(update, context):
+    context.bot.send_message(chat_id=update.effective_chat.id, text='Hello! Type "ssn" for a secret message.')
+
+def ssn(update, context):
+    context.bot.send_message(chat_id=update.effective_chat.id, text='This is a secret message!')
+
+def main():
+    updater = Updater(TOKEN, use_context=True)
+    dispatcher = updater.dispatcher
+
+    dispatcher.add_handler(CommandHandler('start', start))
+    dispatcher.add_handler(MessageHandler(Filters.regex(r'(?i)ssn'), ssn))
+
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
